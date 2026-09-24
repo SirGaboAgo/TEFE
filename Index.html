@@ -110,6 +110,8 @@
     .pie:empty { display: none; }
     .pie span { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--dorado-osc); }
     .pie strong { color: var(--guinda); font-size: 1.05rem; }
+    .lugar { padding: 0 20px 12px; font-size: .8rem; color: var(--tinta-suave); overflow-wrap: anywhere; }
+    .lugar:empty { display: none; }
     .cuenta { height: 6px; background: #efe6d4; }
     .cuenta i { display: block; height: 100%; width: 100%; background: var(--dorado); }
     @keyframes cuenta { from { width: 100%; } to { width: 0; } }
@@ -178,6 +180,7 @@
     <dl id="modalDatos" class="datos"></dl>
     <div id="modalMensaje" class="mensaje"></div>
     <div id="modalPie" class="pie"></div>
+    <div id="modalLugar" class="lugar"></div>
     <div class="cuenta"><i id="modalBarra"></i></div>
   </div>
 </div>
@@ -367,15 +370,19 @@
     let cfg;
     if (r.estado === 'ok' && r.tipo === 'entrada') {
       cfg = { clase: 'entrada', icono: '✓', titulo: 'Bienvenido(a)', mensaje: '', pie: ['Llegada', r.fecha + ' · ' + r.hora], tono: [880, 0.14], vib: 120 };
-    } else if (r.estado === 'ok') {
+    } else if (r.estado === 'ok' && r.tipo === 'salida') {
       cfg = { clase: 'salida', icono: '✓', titulo: 'Salida registrada', mensaje: 'Gracias por su asistencia.', pie: ['Salida', r.fecha + ' · ' + r.hora], tono: [660, 0.14], vib: 120 };
     } else if (r.estado === 'denegado') {
       cfg = { clase: 'denegado', icono: '✕', titulo: 'Registro no permitido', mensaje: r.mensaje, pie: r.fecha ? ['Intento', r.fecha + ' · ' + r.hora] : null, tono: [300, 0.35], vib: [80, 60, 80] };
     } else if (r.estado === 'noencontrado') {
       cfg = { clase: 'denegado', icono: '?', titulo: 'Folio no encontrado', mensaje: r.mensaje, pie: r.fecha ? ['Consulta', r.fecha + ' · ' + r.hora] : null, tono: [300, 0.35], vib: [200, 80, 200] };
     } else {
-      cfg = { clase: 'denegado', icono: '!', titulo: 'No se pudo registrar', mensaje: r.mensaje || 'Error desconocido.', pie: null, tono: [300, 0.35], vib: [200, 80, 200] };
+      cfg = { clase: 'denegado', icono: '!', titulo: 'No se pudo registrar', mensaje: r.mensaje || (r.estado === 'ok' ? 'Respuesta inesperada del servidor: publica una NUEVA VERSIÓN de la app web en Apps Script.' : 'Error desconocido.'), pie: null, tono: [300, 0.35], vib: [200, 80, 200] };
     }
+
+    cfg.lugar = r.guardado
+      ? 'Guardado en «' + r.guardado.libro + '» › «' + r.guardado.hoja + '» · fila ' + r.guardado.fila
+      : '';
 
     const filas = [];
     if (r.folio) filas.push(['Folio', r.folio, '']);
@@ -395,6 +402,7 @@
     document.getElementById('modalMensaje').textContent = cfg.mensaje || '';
     document.getElementById('modalPie').innerHTML = cfg.pie
       ? '<span>' + esc(cfg.pie[0]) + '</span><strong>' + esc(cfg.pie[1]) + '</strong>' : '';
+    document.getElementById('modalLugar').textContent = cfg.lugar || '';
 
     const barra = document.getElementById('modalBarra');
     barra.style.animation = 'none';
